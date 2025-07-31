@@ -1,9 +1,15 @@
 import express, { urlencoded } from 'express';
 import cors from 'cors';
-import mongoose from 'mongoose';
 import cookieParser from 'cookie-parser';
+import dotenv from 'dotenv';
+import { connect } from 'mongoose';
+import connectDB from './utils/db.js';
+
+dotenv.config();
 
 const app = express();
+
+const PORT = process.env.PORT;
 
 app.get("/", (req, res) => {
     return res.status(200).json({ message: "Welcome to the Instagram Clone API", success: true });
@@ -20,8 +26,9 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
-const PORT = 8080;
+
 
 app.listen(PORT , () => {
-  console.log(`Server is running on port ${PORT}`);
+    connectDB();
+    console.log(`Server is running on port ${PORT}`);
 });
