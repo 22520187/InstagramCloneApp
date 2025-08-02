@@ -2,8 +2,8 @@ import express, { urlencoded } from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
-import { connect } from 'mongoose';
 import connectDB from './utils/db.js';
+import userRoutes from './routes/user.route.js';
 
 dotenv.config();
 
@@ -25,6 +25,9 @@ const corsOptions = {
 }
 
 app.use(cors(corsOptions));
+
+// Routes
+app.use("/api/v1/user", userRoutes);
 
 
 
