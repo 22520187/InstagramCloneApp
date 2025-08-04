@@ -4,6 +4,8 @@ import { Input } from './ui/input'
 import { Button } from './ui/button'
 import axios from 'axios'
 import { toast } from 'sonner'
+import { Loader2 } from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
 const Login = () => {  
   const [input, setInput] = useState({
     username: '',
@@ -11,9 +13,11 @@ const Login = () => {
     password: ''
   })
   const [isLoading, setIsLoading] = useState(false)
+  const navigate = useNavigate()
   const changeEventHandler = (e) => {
     setInput({ ...input, [e.target.name]: e.target.value })
   }
+
   const loginHandler = async (e) => {
     e.preventDefault()
     console.log(input)
@@ -26,6 +30,7 @@ const Login = () => {
         withCredentials: true
       });
       if (res.data.success) {
+        navigate('/');
         toast.success(res.data.message)
         setInput({
           email: '',
@@ -41,7 +46,7 @@ const Login = () => {
   }
   return (
     <div className='flex item-center justify-center h-screen w-screen'>
-      <form onSubmit={signupHandler} className='shadow-lg flex flex-col gap-5 p-10 text-left'>
+      <form onSubmit={loginHandler} className='shadow-lg flex flex-col gap-5 p-10 text-left'>
         <div className='my-4'>
           <h1 className='text-2xl font-bold text-center'>Logo</h1>
           <p>Login to see photos and videos from your friends.</p>
@@ -68,7 +73,18 @@ const Login = () => {
             className='focus-visible:ring-transparent my-2'
           />
         </div>
-        <Button type='submit'>Login</Button>
+        {
+          isLoading ? (
+            <Button>
+              <Loader2 className='mr-2 h-4 w-4 animate-spin' />
+              Please wait...
+            </Button>
+          ) : (
+            <Button type='submit' className='my-4'>Login</Button>
+          )
+        }
+        
+        <span className='text-center'>Don't have an account? <Link className='text-blue-600' to='/signup'>Signup</Link></span>
 
       </form>
     </div>
