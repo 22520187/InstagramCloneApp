@@ -22,7 +22,7 @@ export const addNewPost = async (req, res) => {
         //buffer to data uri
         const fileUri = `data:image/jpeg;base64,${optimizedImageBuffer.toString("base64")}`;
         const cloudinaryResponse = await cloudinary.uploader.upload(fileUri);
-        const post = await Post.Create({
+        const post = await Post.create({
             caption,
             image: cloudinaryResponse.secure_url,
             author: authorId,
@@ -156,11 +156,13 @@ export const addComment = async (req, res) => {
 
         if (!text) return res.status(400).json({message: "Comment is required", success: false});
 
-        const comment = await Comment.Create({
+        const comment = await Comment.create({
             text,
             author: commentUserId,
             post: postId,
-        }).populate({
+        });
+        
+        await comment.populate({
             path: "author",
             select: "username, profilePicture",
         });
