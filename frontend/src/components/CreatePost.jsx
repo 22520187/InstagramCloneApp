@@ -7,6 +7,8 @@ import { readFileAsDataURL } from '@/lib/utils'
 import { Loader2 } from 'lucide-react'
 import { toast } from 'sonner'
 import axios from 'axios'
+import { useDispatch, useSelector } from 'react-redux'
+import { setPosts } from '@/redux/postSlice'
 
 const CreatePost = ({ open, setOpen }) => {
 
@@ -15,6 +17,9 @@ const CreatePost = ({ open, setOpen }) => {
   const [caption, setCaption] = useState("");
   const [imagePreview, setImagePreview] = useState("");
   const [loading, setLoading] = useState(false);
+  const {user} = useSelector(store => store.auth);
+  const {posts} = useSelector(store => store.post);
+  const dispatch = useDispatch();
 
   const fileChangeHandler = async (e) => {
     const file = e.target?.files[0];
@@ -38,7 +43,12 @@ const CreatePost = ({ open, setOpen }) => {
         withCredentials: true
       });
       if (res.data.success) {
+        dispatch(setPosts([res.data.post, ...posts])); // [1] -> [1, 2] -> total element = 2
         toast.success(res.data.message);
+        setCaption("");
+        setImagePreview("");
+        setFile("");
+        setOpen(false);
       }
     } catch (error) {
       toast.error(error.response.data.message);
@@ -47,9 +57,6 @@ const CreatePost = ({ open, setOpen }) => {
     }
   }
 
-
-
-
   return (
     <div>
       <Dialog open={open}>
@@ -57,11 +64,11 @@ const CreatePost = ({ open, setOpen }) => {
           <DialogHeader className='text-center font-semibold'>Create New Post</DialogHeader>
           <div className='flex gap-3 items-center'>
             <Avatar>
-              <AvatarImage src="" alt="img" />
+              <AvatarImage src={user?.profilePicture} alt="img" />
               <AvatarFallback>CN</AvatarFallback>
             </Avatar>
             <div>
-              <h1 className='font-semibold text-xs'>Username</h1>
+              <h1 className='font-semibold text-xs'>{user?.username}</h1>
               <span className='text-xs text-gray-600'>Bio here...</span>
             </div>
           </div>
