@@ -106,7 +106,6 @@ const Post = ({ post }) => {
                         <h1>{post.author?.username}</h1>
                         {user?._id === post.author?._id && <Badge variant='secondary'>Author </Badge>}
                     </div>
-
                 </div>
                 <Dialog>
                     <DialogTrigger asChild>
