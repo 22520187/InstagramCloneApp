@@ -10,6 +10,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { toast } from 'sonner'
 import axios from 'axios'
 import { setPosts, setSelectedPost } from '@/redux/postSlice'
+import { setAuthUser } from '@/redux/authSlice'
 import { Badge } from './ui/badge'
 
 const Post = ({ post }) => {
@@ -20,6 +21,7 @@ const Post = ({ post }) => {
     const [liked, setLiked] = useState(post?.likes?.includes(user?._id) || false);
     const [postLike, setPostLike] = useState(post?.likes?.length);
     const [comment, setComment] = useState(post?.comments);
+    const [isBookmarked, setIsBookmarked] = useState(user?.bookmarks?.includes(post?._id) || false);
     const dispatch = useDispatch();
 
     const changeEventHandler = (e) => {
@@ -94,6 +96,17 @@ const Post = ({ post }) => {
             toast.error(error.response.data.message);
         }
     }
+
+    const bookmarkHandler = async () => {
+        try { 
+            const res = await axios.get(`http://localhost:8080/api/v1/post/${post?._id}/bookmark`, { withCredentials: true });
+            if(res.data.success){
+                toast.success(res.data.message);
+            }
+        } catch (error) {
+            console.log(error);
+        }
+    }
     return (
         <div className='my-8 w-full max-w-sm mx-auto'>
             <div className='flex justify-between items-center'>
@@ -112,7 +125,9 @@ const Post = ({ post }) => {
                         <MoreHorizontal className='cursor-pointer' />
                     </DialogTrigger>
                     <DialogContent className='flex flex-col items-center text-sm text-center'>
-                        <Button variant='ghost' className='w-fit cursor-pointer text-[#ED4956] font-bold'>Unfollow</Button>
+                        {
+                            post?.author?._id !== user?._id && <Button variant='ghost' className='w-fit cursor-pointer text-[#ED4956] font-bold'>Unfollow</Button>
+                        }
                         <Button variant='ghost' className='w-fit cursor-pointer'>Add to favorites</Button>
                         {
                             user && user?._id === post?.author?._id && <Button onClick={deletePostHandler} variant='ghost' className='w-fit cursor-pointer'>Delete</Button>
@@ -138,7 +153,10 @@ const Post = ({ post }) => {
                     }} className='cursor-pointer hover:text-gray-600' />
                     <Send className='cursor-pointer hover:text-gray-600' />
                 </div>
-                <Bookmark className='cursor-pointer hover:text-gray-600' />
+                <Bookmark 
+                    onClick={bookmarkHandler} 
+                    className={`cursor-pointer hover:text-gray-600 ${isBookmarked ? 'fill-current text-black' : ''}`} 
+                />
             </div>
             <span className='font-medium block mb-2'>{postLike} likes</span>
             <p>
