@@ -1,11 +1,13 @@
 import { Conversation } from "../models/conversation.model.js";
 import { Message } from "../models/message.model.js";
+import { getReceiverSocketId, io } from "../socket/socket.js";
 // for chatting
 export const sendMessage = async (req, res) => {
     try {
         const senderId = req.id;
         const receiverId = req.params.id;
-        const { message } = req.body;
+        const { textMessage: message } = req.body;
+        console.log(message);
 
         let conversation = await Conversation.findOne({
             participants: { $all: [senderId, receiverId] },
@@ -25,12 +27,13 @@ export const sendMessage = async (req, res) => {
         });
         if (newMessage) conversation.messages.push(newMessage._id);
 
-        await conversation.save();
-        await newMessage.save();
-
         await Promise.all([conversation.save(), newMessage.save()]);
 
         // implement socket.io for real time messaging
+        const receiverSocketId = getReceiverSocketId(receiverId);
+        if (receiverSocketId) {
+            io.to(receiverSocketId).emit("newMessage", newMessage);
+        }
 
 
         return res.status(201).json({
@@ -50,10 +53,11 @@ export const getMessage = async (req, res) => {
         const receiverId = req.params.id;
         const conversation = await Conversation.findOne({
             participants: { $all: [senderId, receiverId] },
-        });
+        }).populate("messages");
         if (!conversation) {
-            return res.status(404).json({
-                message: "Conversation not found",
+            return res.status(200).json({
+                success: true,
+                messages: [],
             })
         }
         return res.status(200).json({

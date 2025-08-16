@@ -9,19 +9,22 @@ import { useDispatch, useSelector } from 'react-redux'
 import { setAuthUser } from '../redux/authSlice'
 import CreatePost from './CreatePost'
 import { setPosts, setSelectedPost } from '@/redux/postSlice'
+import { Popover, PopoverContent, PopoverTrigger } from './ui/popover'
+import { Button } from './ui/button'
 
 
 const LeftSidebar = () => {
 
     const navigate = useNavigate();
-    const {user} = useSelector(store => store.auth);
+    const { user } = useSelector(store => store.auth);
+    const { likeNotification } = useSelector(store => store.realTimeNotification);
     const dispatch = useDispatch();
     const [open, setOpen] = useState(false);
 
     const logoutHandler = async () => {
         try {
-            const res = await axios.get('http://localhost:8080/api/v1/user/logout', {withCredentials: true});
-            if(res.data.success){
+            const res = await axios.get('http://localhost:8080/api/v1/user/logout', { withCredentials: true });
+            if (res.data.success) {
                 dispatch(setAuthUser(null));
                 dispatch(setSelectedPost(null));
                 dispatch(setPosts([]));
@@ -42,10 +45,12 @@ const LeftSidebar = () => {
             setOpen(true);
         } else if (textType === 'Profile') {
             navigate(`/profile/${user?._id}`);
-        } else if (textType=== "Home") {
+        } else if (textType === "Home") {
             navigate('/');
+        } else if (textType === "Messages") {
+            navigate('/chat');
         }
-        
+
     }
 
     const sidebarItems = [
@@ -64,7 +69,7 @@ const LeftSidebar = () => {
             ), text: 'Profile'
         },
         { icon: <LogOut />, text: 'Logout' }
-    
+
     ]
 
     return (
@@ -75,9 +80,46 @@ const LeftSidebar = () => {
                     {
                         sidebarItems.map((item, index) => {
                             return (
-                                <div onClick={() => sidebarHandler(item.text)} key={index} className='flex items-center gap-3 relative hover:bg-gray-100 cursor-pointer rounded-lg p-3 my-3'>
-                                    {item.icon}
-                                    <span>{item.text}</span>
+                                <div key={index} className='flex items-center gap-3 relative hover:bg-gray-100 cursor-pointer rounded-lg p-3 my-3'>
+                                    {
+                                        item.text === 'Notifications' ? (
+                                            <Popover>
+                                                <PopoverTrigger asChild>
+                                                    <div className='flex items-center gap-3 w-full'>
+                                                        {item.icon}
+                                                        <span>{item.text}</span>
+                                                        <Button size='icon' className={`rounded-full h-5 w-5 ml-auto ${likeNotification.length > 0 ? 'bg-red-500 text-white' : 'bg-gray-300 text-gray-600'}`}>
+                                                            {likeNotification.length > 0 ? likeNotification.length : '0'}
+                                                        </Button>
+                                                    </div>
+                                                </PopoverTrigger>
+                                                <PopoverContent>
+                                                    <div>
+                                                        {
+                                                            likeNotification.length === 0 ? (<p>No notifications</p>) : (
+                                                                likeNotification.map((notification) => {
+                                                                    return (
+                                                                        <div key={notification.userId} className='flex items-center gap-2 p-2'>
+                                                                            <Avatar className='h-8 w-8'>
+                                                                                <AvatarImage src={notification.userDetails?.profilePicture} />
+                                                                                <AvatarFallback>CN</AvatarFallback>
+                                                                            </Avatar>
+                                                                            <p className='text-sm'><span className='font-bold'>{notification.userDetails?.username}</span> liked your post</p>
+                                                                        </div>
+                                                                    )
+                                                                })
+                                                            )
+                                                        }
+                                                    </div>
+                                                </PopoverContent>
+                                            </Popover>
+                                        ) : (
+                                            <div onClick={() => sidebarHandler(item.text)} className='flex items-center gap-3 w-full'>
+                                                {item.icon}
+                                                <span>{item.text}</span>
+                                            </div>
+                                        )
+                                    }
                                 </div>
                             )
                         })
